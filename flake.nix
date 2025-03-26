@@ -28,7 +28,6 @@
         # additional libraries and executables to add to gjs' runtime
         extraPackages = [
           # ags.packages.${system}.battery
-          # pkgs.fzf
         ];
       };
     };
