@@ -1,7 +1,7 @@
 import { bind } from 'astal';
-import { globalWeatherVar } from 'src/globals/weather';
+import { globalWeatherVar } from '../../api.ts';
 import { Gtk } from 'astal/gtk3';
-import { weatherIcons } from 'src/lib/icons/weather.js';
+import { weatherIcons } from '../../weather-icons.ts';
 import { getIconQuery } from '../helpers';
 
 export const HourlyIcon = ({ hoursFromNow }: HourlyIconProps): JSX.Element => {

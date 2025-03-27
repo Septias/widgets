@@ -8,7 +8,7 @@ const weatherApiKey = Variable(/*fetchedApiKey*/"");
 
 const { EXISTS, IS_REGULAR } = GLib.FileTest;
 
-const { key, interval: weatherInterval, location } = { key: "" , location: "Freiburg", interval: () => {}};
+const { key, interval: weatherInterval, location } = { key: "", location: "Freiburg", interval: () => { } };
 
 export const globalWeatherVar = Variable<Weather>(DEFAULT_WEATHER);
 
@@ -22,46 +22,47 @@ let weatherIntervalInstance: null | AstalIO.Time = null;
  * @param weatherKey - The API key for accessing the weather service.
  */
 const weatherIntervalFn = (weatherInterval: number, loc: string, weatherKey: string): void => {
-    if (weatherIntervalInstance !== null) {
-        weatherIntervalInstance.cancel();
-    }
+  if (weatherIntervalInstance !== null) {
+    weatherIntervalInstance.cancel();
+  }
 
-    const formattedLocation = loc.replaceAll(' ', '%20');
+  const formattedLocation = loc.replaceAll(' ', '%20');
 
-    weatherIntervalInstance = interval(weatherInterval, () => {
-        execAsync(
-            `curl "https://api.weatherapi.com/v1/forecast.json?key=${weatherKey}&q=${formattedLocation}&days=1&aqi=no&alerts=no"`,
-        )
-            .then((res) => {
-                try {
-                    if (typeof res !== 'string') {
-                        return globalWeatherVar.set(DEFAULT_WEATHER);
-                    }
+  weatherIntervalInstance = interval(weatherInterval, () => {
+    execAsync(
+      `curl "https://api.weatherapi.com/v1/forecast.json?key=${weatherKey}&q=${formattedLocation}&days=1&aqi=no&alerts=no"`,
+    )
+      .then((res) => {
+        try {
+          if (typeof res !== 'string') {
+            return globalWeatherVar.set(DEFAULT_WEATHER);
+          }
 
-                    const parsedWeather = JSON.parse(res);
+          const parsedWeather = JSON.parse(res);
 
-                    if (Object.keys(parsedWeather).includes('error')) {
-                        return globalWeatherVar.set(DEFAULT_WEATHER);
-                    }
+          if (Object.keys(parsedWeather).includes('error')) {
+            return globalWeatherVar.set(DEFAULT_WEATHER);
+          }
 
-                    return globalWeatherVar.set(parsedWeather);
-                } catch (error) {
-                    globalWeatherVar.set(DEFAULT_WEATHER);
-                    console.warn(`Failed to parse weather data: ${error}`);
-                }
-            })
-            .catch((err) => {
-                console.error(`Failed to fetch weather: ${err}`);
-                globalWeatherVar.set(DEFAULT_WEATHER);
-            });
-    });
+          return globalWeatherVar.set(parsedWeather);
+        } catch (error) {
+          globalWeatherVar.set(DEFAULT_WEATHER);
+          console.warn(`Failed to parse weather data: ${error}`);
+        }
+      })
+      .catch((err) => {
+        console.error(`Failed to fetch weather: ${err}`);
+        globalWeatherVar.set(DEFAULT_WEATHER);
+      });
+  });
 };
 
+
 Variable.derive([bind(weatherApiKey), bind(weatherInterval), bind(location)], (weatherKey, weatherInterval, loc) => {
-    if (!weatherKey) {
-        return globalWeatherVar.set(DEFAULT_WEATHER);
-    }
-    weatherIntervalFn(weatherInterval, loc, weatherKey);
+  if (!weatherKey) {
+    return globalWeatherVar.set(DEFAULT_WEATHER);
+  }
+  weatherIntervalFn(weatherInterval, loc, weatherKey);
 })();
 
 /**
@@ -71,12 +72,8 @@ Variable.derive([bind(weatherApiKey), bind(weatherInterval), bind(location)], (w
  * @param unitType - The unit type, either 'imperial' or 'metric'.
  * @returns - The temperature formatted as a string with the appropriate unit.
  */
-export const getTemperature = (weatherData: Weather, unitType: UnitType): string => {
-    if (unitType === 'imperial') {
-        return `${Math.ceil(weatherData.current.temp_f)}° F`;
-    } else {
-        return `${Math.ceil(weatherData.current.temp_c)}° C`;
-    }
+export const getTemperature = (weatherData: Weather): string => {
+  return `${Math.ceil(weatherData.current.temp_c)}° C`;
 };
 
 /**
@@ -86,33 +83,33 @@ export const getTemperature = (weatherData: Weather, unitType: UnitType): string
  * @returns - An object containing the weather icon and color class.
  */
 export const getWeatherIcon = (fahrenheit: number): Record<string, string> => {
-    const icons = {
-        100: '',
-        75: '',
-        50: '',
-        25: '',
-        0: '',
-    } as const;
-    const colors = {
-        100: 'weather-color red',
-        75: 'weather-color orange',
-        50: 'weather-color lavender',
-        25: 'weather-color blue',
-        0: 'weather-color sky',
-    } as const;
+  const icons = {
+    100: '',
+    75: '',
+    50: '',
+    25: '',
+    0: '',
+  } as const;
+  const colors = {
+    100: 'weather-color red',
+    75: 'weather-color orange',
+    50: 'weather-color lavender',
+    25: 'weather-color blue',
+    0: 'weather-color sky',
+  } as const;
 
-    type IconKeys = keyof typeof icons;
+  type IconKeys = keyof typeof icons;
 
-    const threshold: IconKeys =
-        fahrenheit < 0 ? 0 : ([100, 75, 50, 25, 0] as IconKeys[]).find((threshold) => threshold <= fahrenheit) || 0;
+  const threshold: IconKeys =
+    fahrenheit < 0 ? 0 : ([100, 75, 50, 25, 0] as IconKeys[]).find((threshold) => threshold <= fahrenheit) || 0;
 
-    const icon = icons[threshold || 50];
-    const color = colors[threshold || 50];
+  const icon = icons[threshold || 50];
+  const color = colors[threshold || 50];
 
-    return {
-        icon,
-        color,
-    };
+  return {
+    icon,
+    color,
+  };
 };
 
 /**
@@ -123,10 +120,10 @@ export const getWeatherIcon = (fahrenheit: number): Record<string, string> => {
  * @returns - The wind conditions formatted as a string with the appropriate unit.
  */
 export const getWindConditions = (weatherData: Weather, unitType: UnitType): string => {
-    if (unitType === 'imperial') {
-        return `${Math.floor(weatherData.current.wind_mph)} mph`;
-    }
-    return `${Math.floor(weatherData.current.wind_kph)} kph`;
+  if (unitType === 'imperial') {
+    return `${Math.floor(weatherData.current.wind_mph)} mph`;
+  }
+  return `${Math.floor(weatherData.current.wind_kph)} kph`;
 };
 
 /**
@@ -136,7 +133,7 @@ export const getWindConditions = (weatherData: Weather, unitType: UnitType): str
  * @returns - The chance of rain formatted as a percentage string.
  */
 export const getRainChance = (weatherData: Weather): string =>
-    `${weatherData.forecast.forecastday[0].day.daily_chance_of_rain}%`;
+  `${weatherData.forecast.forecastday[0].day.daily_chance_of_rain}%`;
 
 /**
  * Type Guard
@@ -146,7 +143,7 @@ export const getRainChance = (weatherData: Weather): string =>
  * @returns - True if the title is a valid weather icon title, false otherwise.
  */
 export const isValidWeatherIconTitle = (title: string): title is WeatherIconTitle => {
-    return title in weatherIcons;
+  return title in weatherIcons;
 };
 
 /**
@@ -156,22 +153,22 @@ export const isValidWeatherIconTitle = (title: string): title is WeatherIconTitl
  * @returns - The weather icon corresponding to the weather status text.
  */
 export const getWeatherStatusTextIcon = (weatherData: Weather): WeatherIcon => {
-    let iconQuery = weatherData.current.condition.text.trim().toLowerCase().replaceAll(' ', '_');
+  let iconQuery = weatherData.current.condition.text.trim().toLowerCase().replaceAll(' ', '_');
 
-    if (!weatherData.current.is_day && iconQuery === 'partly_cloudy') {
-        iconQuery = 'partly_cloudy_night';
-    }
+  if (!weatherData.current.is_day && iconQuery === 'partly_cloudy') {
+    iconQuery = 'partly_cloudy_night';
+  }
 
-    if (isValidWeatherIconTitle(iconQuery)) {
-        return weatherIcons[iconQuery];
-    } else {
-        console.warn(`Unknown weather icon title: ${iconQuery}`);
-        return weatherIcons['warning'];
-    }
+  if (isValidWeatherIconTitle(iconQuery)) {
+    return weatherIcons[iconQuery];
+  } else {
+    console.warn(`Unknown weather icon title: ${iconQuery}`);
+    return weatherIcons['warning'];
+  }
 };
 
 export const convertCelsiusToFahrenheit = (celsiusValue: number): number => {
-    return (celsiusValue * 9) / 5 + 32;
+  return (celsiusValue * 9) / 5 + 32;
 };
 
 globalThis['globalWeatherVar'] = globalWeatherVar;

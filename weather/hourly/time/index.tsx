@@ -1,4 +1,4 @@
-import { globalWeatherVar } from 'src/globals/weather';
+import { globalWeatherVar } from '../../api.ts';
 import { getNextEpoch } from '../helpers';
 import { bind } from 'astal';
 

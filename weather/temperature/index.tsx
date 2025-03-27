@@ -1,7 +1,8 @@
-import { globalWeatherVar } from 'src/globals/weather';
-import { getTemperature, getWeatherIcon } from 'src/globals/weather';
+import { globalWeatherVar, getTemperature, getWeatherIcon } from '../api.ts';
 import { Gtk } from 'astal/gtk3';
 import { bind, Variable } from 'astal';
+
+const UNIT = "metric";
 
 const WeatherStatus = (): JSX.Element => {
     return (
@@ -20,7 +21,7 @@ const WeatherStatus = (): JSX.Element => {
 };
 
 const Temperature = (): JSX.Element => {
-    const labelBinding = Variable.derive([bind(globalWeatherVar), bind(unit)], getTemperature);
+    const labelBinding = Variable.derive([bind(globalWeatherVar)], getTemperature);
 
     const TemperatureLabel = (): JSX.Element => {
         return <label className={'calendar-menu-weather today temp label'} label={labelBinding()} />;
