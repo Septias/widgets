@@ -23,7 +23,7 @@
         inherit pkgs;
         src = ./.;
         name = "my-shell";
-        entry = "app.ts";
+        entry = "app.tsx";
 
         # additional libraries and executables to add to gjs' runtime
         extraPackages = [
